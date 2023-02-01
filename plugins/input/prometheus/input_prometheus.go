@@ -15,6 +15,7 @@
 package prometheus
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -27,6 +28,7 @@ import (
 
 	"github.com/alibaba/ilogtail/pkg/helper"
 	"github.com/alibaba/ilogtail/pkg/logger"
+	"github.com/alibaba/ilogtail/pkg/models"
 	"github.com/alibaba/ilogtail/pkg/pipeline"
 	"github.com/alibaba/ilogtail/pkg/util"
 
@@ -137,6 +139,47 @@ func (p *ServiceStaticPrometheus) Start(c pipeline.Collector) error {
 	<-p.shutdown
 	p.scraper.Stop()
 	return nil
+}
+
+// Start starts the ServiceInput's service, whatever that may be
+func (p *ServiceStaticPrometheus) StartService(ctx pipeline.PipelineContext) error {
+	p.shutdown = make(chan struct{})
+	p.waitGroup.Add(1)
+	defer p.waitGroup.Done()
+	p.scraper.Init(func(_ *auth.Token, wr *prompbmarshal.WriteRequest) {
+		logger.Debug(p.context.GetRuntimeContext(), "append new metrics", wr.Size())
+		appendToPipeline(ctx, wr)
+		logger.Debug(p.context.GetRuntimeContext(), "append done", wr.Size())
+	})
+	<-p.shutdown
+	p.scraper.Stop()
+	return nil
+}
+
+const (
+	prometheusKeyName = "__name__"
+)
+
+func appendToPipeline(ctx pipeline.PipelineContext, wr *prompbmarshal.WriteRequest) {
+	metricList := make([]models.PipelineEvent, 0, len(wr.Timeseries))
+	for _, ts := range wr.Timeseries {
+		for _, sample := range ts.Samples {
+			tags := models.NewTagsWithMap(labelsToMap(ts.Labels))
+			// todo dongshaofei prometheus untyped
+			metric := models.NewSingleValueMetric(tags.Get(prometheusKeyName), models.MetricTypeUntyped, tags, sample.Timestamp, sample.Value)
+			metricList = append(metricList, metric)
+		}
+	}
+	logger.Info(context.Background(), "input total series", len(wr.Timeseries), "written series", len(metricList))
+	ctx.Collector().Collect(nil, metricList...)
+}
+
+func labelsToMap(labels []prompbmarshal.Label) map[string]string {
+	m := map[string]string{}
+	for _, label := range labels {
+		m[label.Name] = label.Value
+	}
+	return m
 }
 
 // Stop stops the services and closes any necessary channels and connections

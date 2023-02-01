@@ -103,6 +103,7 @@ plugins:
     - import: "github.com/alibaba/ilogtail/plugins/processor/strptime"
     - import: "github.com/alibaba/ilogtail/plugins/processor/stringreplace"
     - import: "github.com/alibaba/ilogtail/plugins/input/debugfile"
+    - import: "github.com/alibaba/ilogtail/plugins/flusher/promremotewrite"
   linux:
     - import: "github.com/alibaba/ilogtail/plugins/flusher/sls"
     - import: "github.com/alibaba/ilogtail/plugins/input/docker/logmeta"
@@ -111,6 +112,7 @@ plugins:
     - import: "github.com/alibaba/ilogtail/plugins/input/snmp"
     - import: "github.com/alibaba/ilogtail/plugins/input/telegraf"
     - import: "github.com/alibaba/ilogtail/plugins/input/prometheus"
+    - import: "github.com/alibaba/ilogtail/plugins/flusher/promremotewrite"
   windows:
     - import: "github.com/alibaba/ilogtail/plugins/flusher/sls"
     - import: "github.com/alibaba/ilogtail/plugins/input/docker/logmeta"

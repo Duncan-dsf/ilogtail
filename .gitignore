@@ -45,6 +45,7 @@ e2e-test
 /build/
 /find_licenses/
 *-test/
+output_plug
 
 # vscode
 .vscode

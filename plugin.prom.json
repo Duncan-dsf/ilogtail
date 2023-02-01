@@ -1,0 +1,24 @@
+{
+   "version":"v2",
+   "inputs":[
+      {
+         "type":"service_prometheus",
+         "detail":{
+            "ConfigFilePath": "prom.yaml"
+         }
+      }
+   ],
+   "processors":[
+      {
+         "type":"processor_default"
+      }
+   ],
+   "flushers":[
+      {
+         "type":"flusher_promremotewirte",
+         "detail":{
+            "Endpoint":"http://10.249.156.83:8176/prometheus/189bfd9a856b9f6620ed580ed869da11/prom-nc2kq7tk65ccyvc/write"
+         }
+      }
+   ]
+}
